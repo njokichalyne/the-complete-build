@@ -14,7 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      fraud_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          message: string
+          resolved: boolean
+          resolved_at: string | null
+          severity: string
+          transaction_id: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          message: string
+          resolved?: boolean
+          resolved_at?: string | null
+          severity: string
+          transaction_id?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          message?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          severity?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraud_alerts_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fraud_reports: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          reference_number: string
+          report_type: string
+          reporter_email: string
+          reporter_name: string
+          reporter_phone: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          reference_number: string
+          report_type: string
+          reporter_email: string
+          reporter_name: string
+          reporter_phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          reference_number?: string
+          report_type?: string
+          reporter_email?: string
+          reporter_name?: string
+          reporter_phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          description: string | null
+          device: string | null
+          id: string
+          location: string | null
+          risk_score: number
+          status: string
+          transaction_ref: string
+          type: string
+          user_name: string
+          user_phone: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          device?: string | null
+          id?: string
+          location?: string | null
+          risk_score?: number
+          status?: string
+          transaction_ref: string
+          type: string
+          user_name: string
+          user_phone?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          device?: string | null
+          id?: string
+          location?: string | null
+          risk_score?: number
+          status?: string
+          transaction_ref?: string
+          type?: string
+          user_name?: string
+          user_phone?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
