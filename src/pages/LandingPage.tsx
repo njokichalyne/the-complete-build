@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { Shield, Brain, Zap, Eye, BarChart3, Lock, ArrowRight, ChevronDown } from 'lucide-react';
+import { Shield, Brain, Zap, Eye, BarChart3, Lock, ArrowRight, ChevronDown, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import heroImage from '@/assets/hero-shield.png';
 
 const features = [
@@ -44,6 +45,8 @@ const stats = [
 ];
 
 const LandingPage = () => {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
@@ -61,15 +64,26 @@ const LandingPage = () => {
             <a href="#stats" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Performance</a>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/portal" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-4 py-2">
-              Client Portal
-            </Link>
-            <Link
-              to="/portal"
-              className="text-sm font-medium gradient-primary text-primary-foreground px-5 py-2 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              Get Protected
-            </Link>
+            {user ? (
+              <Link
+                to="/portal"
+                className="text-sm font-medium gradient-primary text-primary-foreground px-5 py-2 rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Go to Portal
+              </Link>
+            ) : (
+              <>
+                <Link to="/auth" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-4 py-2">
+                  Sign In
+                </Link>
+                <Link
+                  to="/auth"
+                  className="text-sm font-medium gradient-primary text-primary-foreground px-5 py-2 rounded-lg hover:opacity-90 transition-opacity"
+                >
+                  Get Protected
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -103,18 +117,18 @@ const LandingPage = () => {
                 FraudGuard uses advanced machine learning to detect and prevent fraud in real-time, 
                 keeping your mobile banking transactions secure without slowing you down.
               </p>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <Link
-                  to="/portal"
+                  to={user ? '/portal' : '/auth'}
                   className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-8 py-3.5 rounded-xl hover:opacity-90 transition-opacity text-sm"
                 >
-                  Access Portal <ArrowRight className="w-4 h-4" />
+                  {user ? 'Go to Portal' : 'Get Started'} <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
-                  to="/portal/chatbot"
+                  to={user ? '/portal/chatbot' : '/auth'}
                   className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground font-semibold px-8 py-3.5 rounded-xl hover:bg-secondary/80 transition-colors text-sm"
                 >
-                  Talk to AI Assistant
+                  <Sparkles className="w-4 h-4" /> Talk to AI Assistant
                 </Link>
               </div>
             </motion.div>
@@ -131,6 +145,7 @@ const LandingPage = () => {
                   src={heroImage}
                   alt="AI Fraud Detection Shield"
                   className="relative rounded-3xl border border-border/50 w-full"
+                  loading="lazy"
                 />
               </div>
             </motion.div>
@@ -185,7 +200,7 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-card border border-border rounded-xl p-6 hover:border-primary/30 transition-colors duration-300 group"
+                className="bg-card border border-border rounded-xl p-6 hover:border-primary/30 hover:glow-primary transition-all duration-300 group"
               >
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                   <feature.icon className="w-6 h-6 text-primary" />
@@ -243,21 +258,22 @@ const LandingPage = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-card border border-border rounded-2xl p-12"
+            className="bg-card border border-border rounded-2xl p-12 relative overflow-hidden"
           >
+            <div className="absolute top-0 left-0 right-0 h-px gradient-primary opacity-50" />
             <h2 className="text-3xl font-bold text-foreground mb-4">Stay Protected Today</h2>
             <p className="text-muted-foreground mb-8">
-              Report suspicious activity, track your transactions, or chat with our AI assistant for fraud prevention guidance.
+              Create an account to report suspicious activity, track your transactions, or chat with our AI assistant for fraud prevention guidance.
             </p>
-            <div className="flex items-center justify-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-4">
               <Link
-                to="/portal/report"
+                to={user ? '/portal/report' : '/auth'}
                 className="inline-flex items-center gap-2 gradient-primary text-primary-foreground font-semibold px-8 py-3.5 rounded-xl hover:opacity-90 transition-opacity text-sm"
               >
-                Report Fraud
+                {user ? 'Report Fraud' : 'Create Account'}
               </Link>
               <Link
-                to="/portal/chatbot"
+                to={user ? '/portal/chatbot' : '/auth'}
                 className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground font-semibold px-8 py-3.5 rounded-xl hover:bg-secondary/80 transition-colors text-sm"
               >
                 AI Assistant
@@ -269,7 +285,7 @@ const LandingPage = () => {
 
       {/* Footer */}
       <footer className="border-t border-border py-8 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-primary" />
             <span className="text-sm font-semibold text-foreground">FraudGuard</span>
