@@ -3,8 +3,11 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/hooks/useAuth";
 import AdminGate from "@/components/AdminGate";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
+import Auth from "./pages/Auth";
 import PortalOverview from "./pages/portal/PortalOverview";
 import PortalTransactions from "./pages/portal/PortalTransactions";
 import ReportFraud from "./pages/portal/ReportFraud";
@@ -25,26 +28,29 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          {/* Public */}
-          <Route path="/" element={<LandingPage />} />
+        <AuthProvider>
+          <Routes>
+            {/* Public */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/auth" element={<Auth />} />
 
-          {/* Client Portal */}
-          <Route path="/portal" element={<PortalOverview />} />
-          <Route path="/portal/transactions" element={<PortalTransactions />} />
-          <Route path="/portal/report" element={<ReportFraud />} />
-          <Route path="/portal/chatbot" element={<Chatbot />} />
-          <Route path="/portal/learn" element={<Learn />} />
+            {/* Client Portal (auth protected) */}
+            <Route path="/portal" element={<ProtectedRoute><PortalOverview /></ProtectedRoute>} />
+            <Route path="/portal/transactions" element={<ProtectedRoute><PortalTransactions /></ProtectedRoute>} />
+            <Route path="/portal/report" element={<ProtectedRoute><ReportFraud /></ProtectedRoute>} />
+            <Route path="/portal/chatbot" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />
+            <Route path="/portal/learn" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
 
-          {/* Admin (password protected) */}
-          <Route path="/admin" element={<AdminGate><AdminDashboard /></AdminGate>} />
-          <Route path="/admin/transactions" element={<AdminGate><AdminTransactions /></AdminGate>} />
-          <Route path="/admin/alerts" element={<AdminGate><AdminAlerts /></AdminGate>} />
-          <Route path="/admin/reports" element={<AdminGate><AdminReports /></AdminGate>} />
-          <Route path="/admin/analytics" element={<AdminGate><Analytics /></AdminGate>} />
+            {/* Admin (password protected) */}
+            <Route path="/admin" element={<AdminGate><AdminDashboard /></AdminGate>} />
+            <Route path="/admin/transactions" element={<AdminGate><AdminTransactions /></AdminGate>} />
+            <Route path="/admin/alerts" element={<AdminGate><AdminAlerts /></AdminGate>} />
+            <Route path="/admin/reports" element={<AdminGate><AdminReports /></AdminGate>} />
+            <Route path="/admin/analytics" element={<AdminGate><Analytics /></AdminGate>} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

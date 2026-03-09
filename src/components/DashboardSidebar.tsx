@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Activity, AlertTriangle, BarChart3, Shield, Settings, FileText, LogOut } from 'lucide-react';
+import { LayoutDashboard, Activity, AlertTriangle, BarChart3, Shield, FileText, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
