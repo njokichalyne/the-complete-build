@@ -1,1 +1,7 @@
 project_id = "zhiiyrkltvlqnwcklcte"
+
+[functions.chat]
+verify_jwt = false
+
+[functions.analyze-transaction]
+verify_jwt = false
