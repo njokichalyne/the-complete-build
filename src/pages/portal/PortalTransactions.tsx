@@ -5,6 +5,8 @@ import { Search, Brain, Loader2 } from 'lucide-react';
 import PortalLayout from '@/components/PortalLayout';
 import { fetchTransactions, analyzeTransaction, DbTransaction } from '@/lib/api';
 import ReactMarkdown from 'react-markdown';
+import BiometricModal from '@/components/BiometricModal';
+import { useBiometricGate } from '@/hooks/useBiometricGate';
 
 const RiskBar = ({ score }: { score: number }) => {
   const color = score > 70 ? 'bg-destructive' : score > 40 ? 'bg-warning' : 'bg-success';
@@ -29,6 +31,7 @@ const PortalTransactions = () => {
   const [search, setSearch] = useState('');
   const [analyzing, setAnalyzing] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<Record<string, string>>({});
+  const { showGate, requireVerification, onVerified, onCancel } = useBiometricGate();
 
   const filtered = transactions?.filter(t =>
     t.user_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -36,7 +39,7 @@ const PortalTransactions = () => {
     t.description?.toLowerCase().includes(search.toLowerCase())
   ) ?? [];
 
-  const handleAnalyze = async (tx: DbTransaction) => {
+  const doAnalyze = async (tx: DbTransaction) => {
     setAnalyzing(tx.id);
     try {
       const result = await analyzeTransaction(tx);
@@ -48,8 +51,13 @@ const PortalTransactions = () => {
     }
   };
 
+  const handleAnalyze = (tx: DbTransaction) => {
+    requireVerification(() => doAnalyze(tx));
+  };
+
   return (
     <PortalLayout>
+      <BiometricModal open={showGate} onVerified={onVerified} onCancel={onCancel} />
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-foreground mb-1">Transaction Monitor</h1>
         <p className="text-sm text-muted-foreground">View recent transactions and get AI-powered risk analysis.</p>
