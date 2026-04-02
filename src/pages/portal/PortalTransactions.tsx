@@ -31,6 +31,7 @@ const PortalTransactions = () => {
   const [search, setSearch] = useState('');
   const [analyzing, setAnalyzing] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<Record<string, string>>({});
+  const { showGate, requireVerification, onVerified, onCancel } = useBiometricGate();
 
   const filtered = transactions?.filter(t =>
     t.user_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -38,7 +39,7 @@ const PortalTransactions = () => {
     t.description?.toLowerCase().includes(search.toLowerCase())
   ) ?? [];
 
-  const handleAnalyze = async (tx: DbTransaction) => {
+  const doAnalyze = async (tx: DbTransaction) => {
     setAnalyzing(tx.id);
     try {
       const result = await analyzeTransaction(tx);
@@ -48,6 +49,10 @@ const PortalTransactions = () => {
     } finally {
       setAnalyzing(null);
     }
+  };
+
+  const handleAnalyze = (tx: DbTransaction) => {
+    requireVerification(() => doAnalyze(tx));
   };
 
   return (
