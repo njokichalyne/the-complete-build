@@ -57,6 +57,7 @@ const PortalTransactions = () => {
 
   return (
     <PortalLayout>
+      <BiometricModal open={showGate} onVerified={onVerified} onCancel={onCancel} />
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-foreground mb-1">Transaction Monitor</h1>
         <p className="text-sm text-muted-foreground">View recent transactions and get AI-powered risk analysis.</p>
