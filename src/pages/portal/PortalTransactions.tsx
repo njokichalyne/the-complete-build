@@ -5,6 +5,8 @@ import { Search, Brain, Loader2 } from 'lucide-react';
 import PortalLayout from '@/components/PortalLayout';
 import { fetchTransactions, analyzeTransaction, DbTransaction } from '@/lib/api';
 import ReactMarkdown from 'react-markdown';
+import BiometricModal from '@/components/BiometricModal';
+import { useBiometricGate } from '@/hooks/useBiometricGate';
 
 const RiskBar = ({ score }: { score: number }) => {
   const color = score > 70 ? 'bg-destructive' : score > 40 ? 'bg-warning' : 'bg-success';
