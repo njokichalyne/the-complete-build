@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import AdminGate from "@/components/AdminGate";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import BiometricGate from "@/components/BiometricGate";
+
 import LandingPage from "./pages/LandingPage";
 import Auth from "./pages/Auth";
 import PortalOverview from "./pages/portal/PortalOverview";
