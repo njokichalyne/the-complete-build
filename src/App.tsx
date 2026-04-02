@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import AdminGate from "@/components/AdminGate";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import BiometricGate from "@/components/BiometricGate";
 import LandingPage from "./pages/LandingPage";
 import Auth from "./pages/Auth";
 import PortalOverview from "./pages/portal/PortalOverview";
@@ -35,11 +36,11 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
 
             {/* Client Portal (auth protected) */}
-            <Route path="/portal" element={<ProtectedRoute><PortalOverview /></ProtectedRoute>} />
-            <Route path="/portal/transactions" element={<ProtectedRoute><PortalTransactions /></ProtectedRoute>} />
-            <Route path="/portal/report" element={<ProtectedRoute><ReportFraud /></ProtectedRoute>} />
-            <Route path="/portal/chatbot" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />
-            <Route path="/portal/learn" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
+            <Route path="/portal" element={<ProtectedRoute><BiometricGate><PortalOverview /></BiometricGate></ProtectedRoute>} />
+            <Route path="/portal/transactions" element={<ProtectedRoute><BiometricGate><PortalTransactions /></BiometricGate></ProtectedRoute>} />
+            <Route path="/portal/report" element={<ProtectedRoute><BiometricGate><ReportFraud /></BiometricGate></ProtectedRoute>} />
+            <Route path="/portal/chatbot" element={<ProtectedRoute><BiometricGate><Chatbot /></BiometricGate></ProtectedRoute>} />
+            <Route path="/portal/learn" element={<ProtectedRoute><BiometricGate><Learn /></BiometricGate></ProtectedRoute>} />
 
             {/* Admin (password protected) */}
             <Route path="/admin" element={<AdminGate><AdminDashboard /></AdminGate>} />
