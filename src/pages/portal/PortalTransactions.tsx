@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Search, Brain, Loader2, SendHorizonal, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Brain, Loader2, SendHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 import PortalLayout from '@/components/PortalLayout';
 import { fetchTransactions, analyzeTransaction, createTransaction, DbTransaction } from '@/lib/api';
 import ReactMarkdown from 'react-markdown';
@@ -138,7 +138,7 @@ const PortalTransactions = () => {
         >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-              <SendHorizonal className="w-4 h-4 text-primary-foreground" />
+              <SendHorizontal className="w-4 h-4 text-primary-foreground" />
             </div>
             <div className="text-left">
               <p className="text-sm font-semibold text-foreground">Send Transaction</p>
@@ -227,7 +227,7 @@ const PortalTransactions = () => {
                     {sending ? (
                       <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
                     ) : (
-                      <><SendHorizonal className="w-4 h-4" /> Send</>
+                      <><SendHorizontal className="w-4 h-4" /> Send</>
                     )}
                   </button>
                   <button
