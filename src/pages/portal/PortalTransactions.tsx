@@ -72,8 +72,8 @@ const PortalTransactions = () => {
     try {
       const result = await analyzeTransaction(tx);
       setAnalysis(prev => ({ ...prev, [tx.id]: result }));
-    } catch (err: any) {
-      setAnalysis(prev => ({ ...prev, [tx.id]: `Error: ${err.message}` }));
+    } catch (err: unknown) {
+      setAnalysis(prev => ({ ...prev, [tx.id]: `Error: ${(err as Error).message}` }));
     } finally {
       setAnalyzing(null);
     }
@@ -105,8 +105,8 @@ const PortalTransactions = () => {
       setSendForm(defaultForm);
       setShowSendForm(false);
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to send transaction');
+    } catch (err: unknown) {
+      toast.error((err as Error).message || 'Failed to send transaction');
     } finally {
       setSending(false);
     }

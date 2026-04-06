@@ -71,16 +71,16 @@ const Auth = () => {
         toast.success('Account created! Please check your email to verify your account.');
       }
       navigate('/portal');
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (isLogin) {
         const locked = recordFailedAttempt();
         if (locked) {
           toast.error('Too many failed attempts. Account locked for 5 minutes.');
         } else {
-          toast.error(`${err.message || 'Invalid credentials'}. ${attemptsLeft - 1} attempts remaining.`);
+          toast.error(`${(err as Error).message || 'Invalid credentials'}. ${attemptsLeft - 1} attempts remaining.`);
         }
       } else {
-        toast.error(err.message || 'Sign up failed');
+        toast.error((err as Error).message || 'Sign up failed');
       }
     } finally {
       setLoading(false);
