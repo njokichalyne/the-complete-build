@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Mail, Lock, User, ArrowLeft, Loader2, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { Shield, Mail, Lock, User, ArrowLeft, Loader2, Eye, EyeOff, AlertTriangle, Fingerprint } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useLoginSecurity } from '@/hooks/useLoginSecurity';
+import { useBiometricAuth } from '@/hooks/useBiometricAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+const BIOMETRIC_EMAIL_KEY = 'fraudguard_biometric_email';
+const BIOMETRIC_ENABLED_KEY = 'fraudguard_biometric_enabled';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,7 +21,12 @@ const Auth = () => {
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const { isLockedOut, remainingTime, attemptsLeft, recordFailedAttempt, resetAttempts, checkLockout } = useLoginSecurity();
+  const { biometricSupport, isAuthenticating, authenticate } = useBiometricAuth();
   const [countdown, setCountdown] = useState(remainingTime);
+
+  const storedEmail = localStorage.getItem(BIOMETRIC_EMAIL_KEY);
+  const biometricEnabled = localStorage.getItem(BIOMETRIC_ENABLED_KEY) === 'true';
+  const canUseBiometricLogin = biometricEnabled && !!storedEmail && biometricSupport === 'supported';
 
   // Countdown timer for lockout
   useEffect(() => {
@@ -50,6 +60,11 @@ const Auth = () => {
       if (isLogin) {
         await signIn(email, password);
         resetAttempts();
+        // Store email for biometric login if biometric is supported
+        if (biometricSupport === 'supported') {
+          localStorage.setItem(BIOMETRIC_EMAIL_KEY, email);
+          localStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
+        }
         toast.success('Welcome back!');
       } else {
         await signUp(email, password, fullName);
@@ -67,6 +82,42 @@ const Auth = () => {
       } else {
         toast.error(err.message || 'Sign up failed');
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    if (!storedEmail) return;
+    setLoading(true);
+    try {
+      const verified = await authenticate();
+      if (!verified) {
+        toast.error('Biometric verification failed. Please sign in with your password.');
+        setLoading(false);
+        return;
+      }
+      // Try to restore the existing Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        resetAttempts();
+        toast.success('Welcome back!');
+        navigate('/portal');
+        return;
+      }
+      // Try to refresh the session
+      const { data: refreshData } = await supabase.auth.refreshSession();
+      if (refreshData.session) {
+        resetAttempts();
+        toast.success('Welcome back!');
+        navigate('/portal');
+        return;
+      }
+      // Session fully expired — ask for password
+      setEmail(storedEmail);
+      toast.info('Session expired. Please enter your password to continue.');
+    } catch {
+      toast.error('Biometric login failed. Please sign in with your password.');
     } finally {
       setLoading(false);
     }
@@ -238,6 +289,32 @@ const Auth = () => {
                 isLogin ? 'Sign In' : 'Create Account'
               )}
             </button>
+
+            {/* Biometric login button (login mode only) */}
+            {isLogin && canUseBiometricLogin && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground">or</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleBiometricLogin}
+                  disabled={loading || isAuthenticating || isLockedOut}
+                  className="w-full border border-border rounded-xl py-3 px-4 flex items-center justify-center gap-2 text-sm font-medium text-foreground hover:border-primary/50 hover:bg-secondary transition-all disabled:opacity-50"
+                >
+                  {isAuthenticating ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</>
+                  ) : (
+                    <><Fingerprint className="w-4 h-4 text-primary" /> Sign in with Biometrics</>
+                  )}
+                </button>
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Continuing as <span className="text-foreground font-medium">{storedEmail}</span>
+                </p>
+              </div>
+            )}
           </form>
 
           <p className="text-sm text-muted-foreground text-center mt-6">
