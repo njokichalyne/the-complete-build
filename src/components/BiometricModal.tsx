@@ -43,7 +43,12 @@ const BiometricModal = ({ open, onVerified, onCancel }: BiometricModalProps) => 
     } else {
       toast.error('Biometric verification failed');
       const hasPin = localStorage.getItem(PIN_KEY);
-      hasPin ? setShowPinEntry(true) : (setIsSettingUp(true), setShowPinSetup(true));
+      if (hasPin) {
+        setShowPinEntry(true);
+      } else {
+        setIsSettingUp(true);
+        setShowPinSetup(true);
+      }
     }
   };
 

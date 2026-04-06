@@ -50,9 +50,9 @@ const Chatbot = () => {
         onDelta: (chunk) => upsertAssistant(chunk),
         onDone: () => setIsLoading(false),
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       setIsLoading(false);
-      toast.error(e.message || 'Failed to get response');
+      toast.error((e as Error).message || 'Failed to get response');
     }
   };
 
