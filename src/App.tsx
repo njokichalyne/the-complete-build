@@ -9,6 +9,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 import LandingPage from "./pages/LandingPage";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import PortalOverview from "./pages/portal/PortalOverview";
 import PortalTransactions from "./pages/portal/PortalTransactions";
 import ReportFraud from "./pages/portal/ReportFraud";
@@ -34,6 +36,8 @@ const App = () => (
             {/* Public */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Client Portal (auth protected) */}
             <Route path="/portal" element={<ProtectedRoute><PortalOverview /></ProtectedRoute>} />

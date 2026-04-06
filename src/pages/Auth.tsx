@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Mail, Lock, User, ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Shield, Mail, Lock, User, ArrowLeft, Loader2, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useLoginSecurity } from '@/hooks/useLoginSecurity';
 import { toast } from 'sonner';
 
 const Auth = () => {
@@ -14,9 +15,32 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const { isLockedOut, remainingTime, attemptsLeft, recordFailedAttempt, resetAttempts, checkLockout } = useLoginSecurity();
+  const [countdown, setCountdown] = useState(remainingTime);
+
+  // Countdown timer for lockout
+  useEffect(() => {
+    if (!isLockedOut) { setCountdown(0); return; }
+    setCountdown(remainingTime);
+    const interval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          checkLockout();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isLockedOut, remainingTime, checkLockout]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (checkLockout()) {
+      toast.error('Account temporarily locked. Please wait.');
+      return;
+    }
     if (!email || !password || (!isLogin && !fullName)) {
       toast.error('Please fill in all fields');
       return;
@@ -25,18 +49,30 @@ const Auth = () => {
     try {
       if (isLogin) {
         await signIn(email, password);
+        resetAttempts();
         toast.success('Welcome back!');
       } else {
         await signUp(email, password, fullName);
-        toast.success('Account created successfully!');
+        toast.success('Account created! Please check your email to verify your account.');
       }
       navigate('/portal');
     } catch (err: any) {
-      toast.error(err.message || 'Authentication failed');
+      if (isLogin) {
+        const locked = recordFailedAttempt();
+        if (locked) {
+          toast.error('Too many failed attempts. Account locked for 5 minutes.');
+        } else {
+          toast.error(`${err.message || 'Invalid credentials'}. ${attemptsLeft - 1} attempts remaining.`);
+        }
+      } else {
+        toast.error(err.message || 'Sign up failed');
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -100,6 +136,23 @@ const Auth = () => {
             {isLogin ? 'Sign in to access your security portal' : 'Get started with FraudGuard protection'}
           </p>
 
+          {/* Lockout warning */}
+          {isLockedOut && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 mb-6 flex items-start gap-3"
+            >
+              <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-destructive">Account Temporarily Locked</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Too many failed login attempts. Try again in <strong className="text-foreground font-mono">{formatTime(countdown)}</strong>
+                </p>
+              </div>
+            </motion.div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <AnimatePresence mode="wait">
               {!isLogin && (
@@ -139,7 +192,14 @@ const Auth = () => {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-foreground block mb-1.5">Password</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-foreground">Password</label>
+                {isLogin && (
+                  <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                    Forgot password?
+                  </Link>
+                )}
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -159,9 +219,17 @@ const Auth = () => {
               </div>
             </div>
 
+            {/* Attempts warning */}
+            {isLogin && !isLockedOut && attemptsLeft < 5 && attemptsLeft > 0 && (
+              <p className="text-xs text-warning flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                {attemptsLeft} login attempt{attemptsLeft !== 1 ? 's' : ''} remaining before lockout
+              </p>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || isLockedOut}
               className="w-full gradient-primary text-primary-foreground font-semibold py-3 rounded-xl hover:opacity-90 transition-opacity text-sm disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
