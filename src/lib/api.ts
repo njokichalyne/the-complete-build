@@ -92,6 +92,27 @@ export async function updateAlertStatus(alertId: string, resolved: boolean) {
   if (error) throw error;
 }
 
+export async function createTransaction(tx: {
+  user_name: string;
+  user_phone?: string;
+  type: string;
+  amount: number;
+  currency: string;
+  description?: string;
+  location?: string;
+  device?: string;
+}) {
+  const transaction_ref = `TXN-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+  const risk_score = Math.floor(Math.random() * 30); // Low risk for user-initiated transactions
+  const { data, error } = await supabase
+    .from('transactions')
+    .insert({ ...tx, transaction_ref, status: 'approved', risk_score })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as DbTransaction;
+}
+
 export async function analyzeTransaction(transaction: DbTransaction) {
   const response = await fetch(
     `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-transaction`,

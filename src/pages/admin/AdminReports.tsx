@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Eye, Clock, CheckCircle, Search as SearchIcon, AlertTriangle } from 'lucide-react';
+import { LucideIcon, Loader2, Eye, Clock, CheckCircle, Search as SearchIcon, AlertTriangle } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { fetchFraudReports } from '@/lib/api';
 
-const statusConfig: Record<string, { icon: any; color: string; bg: string }> = {
+const statusConfig: Record<string, { icon: LucideIcon; color: string; bg: string }> = {
   pending: { icon: Clock, color: 'text-warning', bg: 'bg-warning/10' },
   investigating: { icon: Eye, color: 'text-primary', bg: 'bg-primary/10' },
   resolved: { icon: CheckCircle, color: 'text-success', bg: 'bg-success/10' },

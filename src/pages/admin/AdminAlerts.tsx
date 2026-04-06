@@ -27,7 +27,7 @@ const AdminAlerts = () => {
   const alertCards = (filtered ?? []).map(a => ({
     id: a.id,
     transactionId: a.transaction_id || '',
-    severity: a.severity as any,
+    severity: a.severity as 'low' | 'medium' | 'high' | 'critical',
     type: a.alert_type,
     message: a.message,
     timestamp: a.created_at,

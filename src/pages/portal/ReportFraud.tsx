@@ -37,8 +37,8 @@ const ReportFraud = () => {
       setRefNumber(report.reference_number);
       setSubmitted(true);
       toast.success('Fraud report submitted successfully');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to submit report');
+    } catch (err: unknown) {
+      toast.error((err as Error).message || 'Failed to submit report');
     } finally {
       setLoading(false);
     }

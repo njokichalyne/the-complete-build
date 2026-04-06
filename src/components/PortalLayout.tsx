@@ -1,10 +1,12 @@
 import { ReactNode, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Shield, Home, Activity, AlertTriangle, MessageSquare, BookOpen, ArrowLeft, LogOut, User, ChevronDown, Menu, X } from 'lucide-react';
+import { Shield, Home, Activity, AlertTriangle, MessageSquare, BookOpen, ArrowLeft, LogOut, ChevronDown, Menu, X, Sun, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import BiometricGate from '@/components/BiometricGate';
 
 const navItems = [
   { to: '/portal', icon: Home, label: 'Overview', end: true },
@@ -18,11 +20,14 @@ const PortalLayout = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
+    sessionStorage.removeItem('biometric_verified');
+    sessionStorage.removeItem('biometric_tx_verified');
     toast.success('Signed out successfully');
     navigate('/');
   };
@@ -31,6 +36,7 @@ const PortalLayout = ({ children }: { children: ReactNode }) => {
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
+    <BiometricGate>
     <div className="min-h-screen bg-background">
       {/* Top nav */}
       <header className="sticky top-0 z-50 glass border-b border-border">
@@ -69,6 +75,15 @@ const PortalLayout = ({ children }: { children: ReactNode }) => {
           </nav>
 
           <div className="flex items-center gap-2">
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
             {/* User menu */}
             <div className="relative">
               <button
@@ -162,6 +177,7 @@ const PortalLayout = ({ children }: { children: ReactNode }) => {
         {children}
       </main>
     </div>
+    </BiometricGate>
   );
 };
 
