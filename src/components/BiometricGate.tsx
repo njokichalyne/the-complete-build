@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Fingerprint, KeyRound, ShieldCheck, AlertCircle, Loader2, Delete } from 'lucide-react';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
@@ -14,20 +14,17 @@ interface BiometricGateProps {
 
 const BiometricGate = ({ children }: BiometricGateProps) => {
   const { biometricSupport, isAuthenticating, authenticate } = useBiometricAuth();
-  const [verified, setVerified] = useState(false);
+  // Initialise synchronously from sessionStorage to avoid a flash of the gate UI
+  const [verified, setVerified] = useState(() => {
+    const ts = sessionStorage.getItem(VERIFIED_KEY);
+    return !!(ts && Date.now() - parseInt(ts) < SESSION_DURATION);
+  });
   const [showPinSetup, setShowPinSetup] = useState(false);
   const [showPinEntry, setShowPinEntry] = useState(false);
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [isSettingUp, setIsSettingUp] = useState(false);
   const [attempts, setAttempts] = useState(0);
-
-  useEffect(() => {
-    const ts = sessionStorage.getItem(VERIFIED_KEY);
-    if (ts && Date.now() - parseInt(ts) < SESSION_DURATION) {
-      setVerified(true);
-    }
-  }, []);
 
   const markVerified = () => {
     sessionStorage.setItem(VERIFIED_KEY, Date.now().toString());
@@ -45,6 +42,7 @@ const BiometricGate = ({ children }: BiometricGateProps) => {
       if (hasPin) {
         setShowPinEntry(true);
       } else {
+        setIsSettingUp(true);
         setShowPinSetup(true);
       }
     }

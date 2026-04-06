@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import BiometricGate from '@/components/BiometricGate';
 
 const navItems = [
   { to: '/portal', icon: Home, label: 'Overview', end: true },
@@ -25,6 +26,8 @@ const PortalLayout = ({ children }: { children: ReactNode }) => {
 
   const handleLogout = async () => {
     await signOut();
+    sessionStorage.removeItem('biometric_verified');
+    sessionStorage.removeItem('biometric_tx_verified');
     toast.success('Signed out successfully');
     navigate('/');
   };
@@ -33,6 +36,7 @@ const PortalLayout = ({ children }: { children: ReactNode }) => {
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
+    <BiometricGate>
     <div className="min-h-screen bg-background">
       {/* Top nav */}
       <header className="sticky top-0 z-50 glass border-b border-border">
@@ -173,6 +177,7 @@ const PortalLayout = ({ children }: { children: ReactNode }) => {
         {children}
       </main>
     </div>
+    </BiometricGate>
   );
 };
 
