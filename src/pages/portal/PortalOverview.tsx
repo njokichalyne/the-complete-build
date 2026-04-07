@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
-import { Shield, Activity, AlertTriangle, MessageSquare, ArrowRight, TrendingUp, Clock } from 'lucide-react';
+import { Shield, Activity, AlertTriangle, MessageSquare, ArrowRight, TrendingUp, Clock, Copy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchTransactions, fetchFraudAlerts } from '@/lib/api';
+import { getProfile } from '@/lib/credentials';
 import { useAuth } from '@/hooks/useAuth';
 import PortalLayout from '@/components/PortalLayout';
+import { toast } from 'sonner';
 
 const PortalOverview = () => {
   const { user } = useAuth();
