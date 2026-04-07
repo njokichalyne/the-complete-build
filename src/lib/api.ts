@@ -40,6 +40,16 @@ export interface DbFraudReport {
   updated_at: string;
 }
 
+export interface DbUserAccount {
+  id: string;
+  user_name: string;
+  email: string | null;
+  balance: number;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export async function fetchTransactions() {
   const { data, error } = await supabase
     .from('transactions')

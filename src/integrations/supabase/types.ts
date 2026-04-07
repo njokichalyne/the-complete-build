@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      user_accounts: {
+        Row: {
+          id: string
+          user_name: string
+          email: string | null
+          balance: number
+          currency: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_name: string
+          email?: string | null
+          balance?: number
+          currency?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_name?: string
+          email?: string | null
+          balance?: number
+          currency?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fraud_alerts: {
         Row: {
           alert_type: string
