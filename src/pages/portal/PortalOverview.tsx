@@ -18,6 +18,11 @@ const PortalOverview = () => {
   const blockedTx = transactions?.filter(t => t.status === 'blocked').length ?? 0;
   const activeAlerts = alerts?.filter(a => !a.resolved).length ?? 0;
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: () => getProfile(user!.id),
+    enabled: !!user,
+  });
 
   return (
     <PortalLayout>
