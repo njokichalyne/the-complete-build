@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Search, Brain, Loader2, SendHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Brain, Loader2, SendHorizontal, ChevronDown, ChevronUp, UserSearch } from 'lucide-react';
 import PortalLayout from '@/components/PortalLayout';
 import { fetchTransactions, analyzeTransaction, createTransaction, DbTransaction } from '@/lib/api';
+import { lookupByAccountNumber } from '@/lib/credentials';
 import ReactMarkdown from 'react-markdown';
 import BiometricModal from '@/components/BiometricModal';
 import { useBiometricGate } from '@/hooks/useBiometricGate';
@@ -32,7 +33,7 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'NGN', 'ZAR', 'GHS'];
 const TX_TYPES = ['Transfer', 'Payment', 'Purchase', 'Withdrawal', 'Deposit'];
 
 interface SendForm {
-  recipient: string;
+  accountNumber: string;
   amount: string;
   currency: string;
   type: string;
@@ -40,7 +41,7 @@ interface SendForm {
 }
 
 const defaultForm: SendForm = {
-  recipient: '',
+  accountNumber: '',
   amount: '',
   currency: 'USD',
   type: 'Transfer',
@@ -60,6 +61,8 @@ const PortalTransactions = () => {
   const [showSendForm, setShowSendForm] = useState(false);
   const [sendForm, setSendForm] = useState<SendForm>(defaultForm);
   const [sending, setSending] = useState(false);
+  const [recipientName, setRecipientName] = useState<string | null>(null);
+  const [lookingUp, setLookingUp] = useState(false);
 
   const filtered = transactions?.filter(t =>
     t.user_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -83,9 +86,32 @@ const PortalTransactions = () => {
     requireVerification(() => doAnalyze(tx));
   };
 
+  const handleAccountLookup = async () => {
+    if (!sendForm.accountNumber.trim()) return;
+    setLookingUp(true);
+    setRecipientName(null);
+    try {
+      const profile = await lookupByAccountNumber(sendForm.accountNumber);
+      if (profile) {
+        setRecipientName(profile.full_name || 'Unknown User');
+        toast.success(`Recipient found: ${profile.full_name || 'User'}`);
+      } else {
+        toast.error('No account found with that number');
+      }
+    } catch {
+      toast.error('Failed to look up account');
+    } finally {
+      setLookingUp(false);
+    }
+  };
+
   const doSendTransaction = async () => {
-    if (!sendForm.recipient || !sendForm.amount || Number(sendForm.amount) <= 0) {
+    if (!sendForm.accountNumber || !sendForm.amount || Number(sendForm.amount) <= 0) {
       toast.error('Please fill in all required fields.');
+      return;
+    }
+    if (!recipientName) {
+      toast.error('Please verify the account number first.');
       return;
     }
     setSending(true);
@@ -97,12 +123,13 @@ const PortalTransactions = () => {
         type: sendForm.type,
         amount: Number(sendForm.amount),
         currency: sendForm.currency,
-        description: sendForm.description || `${sendForm.type} to ${sendForm.recipient}`,
+        description: sendForm.description || `${sendForm.type} to ${recipientName} (${sendForm.accountNumber})`,
         location: 'Web Portal',
         device: navigator.userAgent.includes('Mobile') ? 'Mobile Browser' : 'Desktop Browser',
       });
-      toast.success('Transaction sent successfully!');
+      toast.success(`Transaction to ${recipientName} sent successfully!`);
       setSendForm(defaultForm);
+      setRecipientName(null);
       setShowSendForm(false);
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     } catch (err: unknown) {
@@ -163,16 +190,39 @@ const PortalTransactions = () => {
                   Biometric or PIN verification is required before sending.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-semibold text-foreground block mb-1.5">Recipient *</label>
-                    <input
-                      type="text"
-                      value={sendForm.recipient}
-                      onChange={e => setSendForm(f => ({ ...f, recipient: e.target.value }))}
-                      placeholder="Recipient name or account"
-                      className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors"
-                      required
-                    />
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-semibold text-foreground block mb-1.5">Recipient Account Number *</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={sendForm.accountNumber}
+                        onChange={e => {
+                          setSendForm(f => ({ ...f, accountNumber: e.target.value.toUpperCase() }));
+                          setRecipientName(null);
+                        }}
+                        placeholder="ACC-XXXXXXXX"
+                        className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors font-mono"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAccountLookup}
+                        disabled={lookingUp || !sendForm.accountNumber.trim()}
+                        className="px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all disabled:opacity-50 flex items-center gap-1.5"
+                      >
+                        {lookingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserSearch className="w-4 h-4" />}
+                        Verify
+                      </button>
+                    </div>
+                    {recipientName && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-xs text-success mt-1.5 flex items-center gap-1"
+                      >
+                        ✓ Recipient: <span className="font-semibold">{recipientName}</span>
+                      </motion.p>
+                    )}
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-foreground block mb-1.5">Transaction Type</label>
@@ -221,7 +271,7 @@ const PortalTransactions = () => {
                 <div className="flex gap-3 pt-1">
                   <button
                     type="submit"
-                    disabled={sending}
+                    disabled={sending || !recipientName}
                     className="gradient-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity text-sm disabled:opacity-50 flex items-center gap-2"
                   >
                     {sending ? (
@@ -232,7 +282,7 @@ const PortalTransactions = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setSendForm(defaultForm); setShowSendForm(false); }}
+                    onClick={() => { setSendForm(defaultForm); setRecipientName(null); setShowSendForm(false); }}
                     className="px-6 py-2.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                   >
                     Cancel

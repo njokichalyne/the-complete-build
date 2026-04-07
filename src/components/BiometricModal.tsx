@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Fingerprint, KeyRound, ShieldCheck, AlertCircle, Loader2, Delete, X } from 'lucide-react';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
+import { useAuth } from '@/hooks/useAuth';
+import { getCredentials, upsertPin, hashPin } from '@/lib/credentials';
 import { toast } from 'sonner';
-
-const PIN_KEY = 'fraudguard_pin';
 
 interface BiometricModalProps {
   open: boolean;
@@ -14,12 +14,25 @@ interface BiometricModalProps {
 
 const BiometricModal = ({ open, onVerified, onCancel }: BiometricModalProps) => {
   const { biometricSupport, isAuthenticating, authenticate } = useBiometricAuth();
+  const { user } = useAuth();
   const [showPinSetup, setShowPinSetup] = useState(false);
   const [showPinEntry, setShowPinEntry] = useState(false);
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [isSettingUp, setIsSettingUp] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [hasStoredPin, setHasStoredPin] = useState(false);
+  const [loadingCreds, setLoadingCreds] = useState(false);
+
+  // Load credentials from DB on open
+  useEffect(() => {
+    if (open && user) {
+      setLoadingCreds(true);
+      getCredentials(user.id).then(creds => {
+        setHasStoredPin(!!creds?.pin_hash);
+      }).catch(() => {}).finally(() => setLoadingCreds(false));
+    }
+  }, [open, user]);
 
   const handleSuccess = () => {
     resetState();
@@ -42,8 +55,7 @@ const BiometricModal = ({ open, onVerified, onCancel }: BiometricModalProps) => 
       handleSuccess();
     } else {
       toast.error('Biometric verification failed');
-      const hasPin = localStorage.getItem(PIN_KEY);
-      if (hasPin) {
+      if (hasStoredPin) {
         setShowPinEntry(true);
       } else {
         setIsSettingUp(true);
@@ -52,15 +64,22 @@ const BiometricModal = ({ open, onVerified, onCancel }: BiometricModalProps) => 
     }
   };
 
-  const handlePinDigit = (digit: string) => {
+  const handlePinDigit = async (digit: string) => {
+    if (!user) return;
+
     if (isSettingUp) {
       if (confirmPin.length < 4 && pin.length === 4) {
         const next = confirmPin + digit;
         setConfirmPin(next);
         if (next.length === 4) {
           if (next === pin) {
-            localStorage.setItem(PIN_KEY, btoa(next));
-            handleSuccess();
+            try {
+              await upsertPin(user.id, hashPin(next));
+              setHasStoredPin(true);
+              handleSuccess();
+            } catch {
+              toast.error('Failed to save PIN. Try again.');
+            }
           } else {
             toast.error('PINs do not match. Try again.');
             setPin('');
@@ -74,19 +93,24 @@ const BiometricModal = ({ open, onVerified, onCancel }: BiometricModalProps) => 
       const next = pin + digit;
       setPin(next);
       if (next.length === 4) {
-        const stored = atob(localStorage.getItem(PIN_KEY) || '');
-        if (next === stored) {
-          handleSuccess();
-        } else {
-          setAttempts(prev => prev + 1);
-          setPin('');
-          if (attempts >= 2) {
-            toast.error('Too many failed attempts.');
-            resetState();
-            onCancel();
+        try {
+          const creds = await getCredentials(user.id);
+          if (creds && creds.pin_hash === hashPin(next)) {
+            handleSuccess();
           } else {
-            toast.error(`Incorrect PIN. ${2 - attempts} attempts remaining.`);
+            setAttempts(prev => prev + 1);
+            setPin('');
+            if (attempts >= 2) {
+              toast.error('Too many failed attempts.');
+              resetState();
+              onCancel();
+            } else {
+              toast.error(`Incorrect PIN. ${2 - attempts} attempts remaining.`);
+            }
           }
+        } catch {
+          toast.error('Verification failed. Try again.');
+          setPin('');
         }
       }
     }
@@ -101,8 +125,7 @@ const BiometricModal = ({ open, onVerified, onCancel }: BiometricModalProps) => 
   };
 
   const startPinEntry = () => {
-    const hasPin = localStorage.getItem(PIN_KEY);
-    if (hasPin) {
+    if (hasStoredPin) {
       setShowPinEntry(true);
       setShowPinSetup(false);
       setIsSettingUp(false);
@@ -146,7 +169,7 @@ const BiometricModal = ({ open, onVerified, onCancel }: BiometricModalProps) => 
         <AnimatePresence mode="wait">
           {!showPinSetup && !showPinEntry ? (
             <motion.div key="main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-              {biometricSupport === 'checking' ? (
+              {biometricSupport === 'checking' || loadingCreds ? (
                 <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 text-primary animate-spin" /></div>
               ) : (
                 <>
@@ -170,7 +193,7 @@ const BiometricModal = ({ open, onVerified, onCancel }: BiometricModalProps) => 
                     <KeyRound className="w-8 h-8 text-muted-foreground" />
                     <div className="text-left">
                       <p className="font-semibold text-foreground text-sm">Use PIN</p>
-                      <p className="text-xs text-muted-foreground">4-digit PIN</p>
+                      <p className="text-xs text-muted-foreground">{hasStoredPin ? 'Enter your 4-digit PIN' : 'Set up a 4-digit PIN'}</p>
                     </div>
                   </button>
                 </>
