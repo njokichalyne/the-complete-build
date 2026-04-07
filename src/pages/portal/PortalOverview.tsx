@@ -29,6 +29,21 @@ const PortalOverview = () => {
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-foreground mb-1">Welcome back, {displayName} 👋</h1>
         <p className="text-sm text-muted-foreground">Monitor your banking security and report suspicious activity.</p>
+        {profile?.account_number && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Account:</span>
+            <span className="text-xs font-mono font-bold text-foreground bg-secondary px-2.5 py-1 rounded-lg">{profile.account_number}</span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(profile.account_number);
+                toast.success('Account number copied!');
+              }}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </motion.div>
 
       {/* Quick Stats */}
