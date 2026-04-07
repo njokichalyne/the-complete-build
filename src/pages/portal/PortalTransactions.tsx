@@ -32,7 +32,7 @@ const statusStyles: Record<string, string> = {
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'NGN', 'ZAR', 'GHS'];
 const TX_TYPES = ['transfer', 'payment', 'withdrawal', 'deposit'];
 
-const HARDCODED_STARTING_BALANCE = 10_000;
+const INITIAL_BALANCE = 10_000;
 const BALANCE_STORAGE_KEY = 'fraudguard_account_balance';
 
 interface SendForm {
@@ -63,7 +63,7 @@ const PortalTransactions = () => {
   // Hardcoded account balance (persisted in localStorage)
   const [balance, setBalance] = useState<number>(() => {
     const stored = localStorage.getItem(BALANCE_STORAGE_KEY);
-    return stored ? parseFloat(stored) : HARDCODED_STARTING_BALANCE;
+    return stored ? parseFloat(stored) : INITIAL_BALANCE;
   });
 
   // Send transaction state
@@ -209,7 +209,7 @@ const PortalTransactions = () => {
                     Biometric or PIN verification is required before sending.
                   </p>
                   <p className="text-xs font-mono font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg">
-                    Balance: USD {balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    Balance: {sendForm.currency} {balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
