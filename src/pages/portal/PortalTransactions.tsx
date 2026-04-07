@@ -30,7 +30,7 @@ const statusStyles: Record<string, string> = {
 };
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'NGN', 'ZAR', 'GHS'];
-const TX_TYPES = ['Transfer', 'Payment', 'Purchase', 'Withdrawal', 'Deposit'];
+const TX_TYPES = ['transfer', 'payment', 'withdrawal', 'deposit'];
 
 interface SendForm {
   accountNumber: string;
@@ -44,7 +44,7 @@ const defaultForm: SendForm = {
   accountNumber: '',
   amount: '',
   currency: 'USD',
-  type: 'Transfer',
+  type: 'transfer',
   description: '',
 };
 
