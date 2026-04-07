@@ -44,7 +44,7 @@ const defaultForm: SendForm = {
   accountNumber: '',
   amount: '',
   currency: 'USD',
-  type: 'Transfer',
+  type: 'transfer',
   description: '',
 };
 
