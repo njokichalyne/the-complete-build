@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
-import { Shield, Activity, AlertTriangle, MessageSquare, ArrowRight, TrendingUp, Clock } from 'lucide-react';
+import { Shield, Activity, AlertTriangle, MessageSquare, ArrowRight, TrendingUp, Clock, Copy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchTransactions, fetchFraudAlerts } from '@/lib/api';
+import { getProfile } from '@/lib/credentials';
 import { useAuth } from '@/hooks/useAuth';
 import PortalLayout from '@/components/PortalLayout';
+import { toast } from 'sonner';
 
 const PortalOverview = () => {
   const { user } = useAuth();
@@ -16,12 +18,32 @@ const PortalOverview = () => {
   const blockedTx = transactions?.filter(t => t.status === 'blocked').length ?? 0;
   const activeAlerts = alerts?.filter(a => !a.resolved).length ?? 0;
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: () => getProfile(user!.id),
+    enabled: !!user,
+  });
 
   return (
     <PortalLayout>
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-foreground mb-1">Welcome back, {displayName} 👋</h1>
         <p className="text-sm text-muted-foreground">Monitor your banking security and report suspicious activity.</p>
+        {profile?.account_number && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Account:</span>
+            <span className="text-xs font-mono font-bold text-foreground bg-secondary px-2.5 py-1 rounded-lg">{profile.account_number}</span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(profile.account_number);
+                toast.success('Account number copied!');
+              }}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </motion.div>
 
       {/* Quick Stats */}

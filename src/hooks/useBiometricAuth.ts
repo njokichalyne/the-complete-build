@@ -7,8 +7,10 @@ const CREDENTIAL_ID_KEY = 'fraudguard_credential_id';
 const bufToBase64 = (buf: ArrayBuffer): string =>
   btoa(String.fromCharCode(...new Uint8Array(buf)));
 
-const base64ToBuf = (b64: string): Uint8Array =>
-  Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+const base64ToBuf = (b64: string): ArrayBuffer => {
+  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  return bytes.buffer as ArrayBuffer;
+};
 
 export const useBiometricAuth = () => {
   const [biometricSupport, setBiometricSupport] = useState<BiometricSupport>('checking');

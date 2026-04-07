@@ -14,33 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
-      user_accounts: {
+      failed_tx_attempts: {
         Row: {
-          id: string
-          user_name: string
-          email: string | null
-          balance: number
-          currency: string
+          attempt_count: number
           created_at: string
-          updated_at: string
+          id: string
+          last_attempt_at: string
+          locked_until: string | null
+          user_id: string
         }
         Insert: {
-          id?: string
-          user_name: string
-          email?: string | null
-          balance?: number
-          currency?: string
+          attempt_count?: number
           created_at?: string
-          updated_at?: string
+          id?: string
+          last_attempt_at?: string
+          locked_until?: string | null
+          user_id: string
         }
         Update: {
-          id?: string
-          user_name?: string
-          email?: string | null
-          balance?: number
-          currency?: string
+          attempt_count?: number
           created_at?: string
-          updated_at?: string
+          id?: string
+          last_attempt_at?: string
+          locked_until?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -124,6 +121,27 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          account_number: string
+          created_at: string
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          account_number?: string
+          created_at?: string
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          account_number?: string
+          created_at?: string
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -169,6 +187,33 @@ export type Database = {
           type?: string
           user_name?: string
           user_phone?: string | null
+        }
+        Relationships: []
+      }
+      user_credentials: {
+        Row: {
+          created_at: string
+          id: string
+          pin_hash: string | null
+          updated_at: string
+          user_id: string
+          webauthn_credential_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pin_hash?: string | null
+          updated_at?: string
+          user_id: string
+          webauthn_credential_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pin_hash?: string | null
+          updated_at?: string
+          user_id?: string
+          webauthn_credential_id?: string | null
         }
         Relationships: []
       }
