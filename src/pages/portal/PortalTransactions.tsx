@@ -32,6 +32,9 @@ const statusStyles: Record<string, string> = {
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'NGN', 'ZAR', 'GHS'];
 const TX_TYPES = ['transfer', 'payment', 'withdrawal', 'deposit'];
 
+const INITIAL_BALANCE = 10_000;
+const BALANCE_STORAGE_KEY = 'fraudguard_account_balance';
+
 interface SendForm {
   accountNumber: string;
   amount: string;
@@ -56,6 +59,12 @@ const PortalTransactions = () => {
   const [analyzing, setAnalyzing] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<Record<string, string>>({});
   const { showGate, requireVerification, onVerified, onCancel } = useBiometricGate();
+
+  // Hardcoded account balance (persisted in localStorage)
+  const [balance, setBalance] = useState<number>(() => {
+    const stored = localStorage.getItem(BALANCE_STORAGE_KEY);
+    return stored ? parseFloat(stored) : INITIAL_BALANCE;
+  });
 
   // Send transaction state
   const [showSendForm, setShowSendForm] = useState(false);
@@ -110,10 +119,13 @@ const PortalTransactions = () => {
       toast.error('Please fill in all required fields.');
       return;
     }
-    if (!recipientName) {
-      toast.error('Please verify the account number first.');
+    const txAmount = Number(sendForm.amount);
+    if (txAmount > balance) {
+      toast.error(`Insufficient funds. Available balance: ${sendForm.currency} ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
       return;
     }
+    // Use looked-up name or fall back to the entered account number
+    const recipient = recipientName ?? sendForm.accountNumber;
     setSending(true);
     try {
       const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
@@ -121,13 +133,19 @@ const PortalTransactions = () => {
         user_name: displayName,
         user_phone: user?.phone ?? undefined,
         type: sendForm.type,
-        amount: Number(sendForm.amount),
+        amount: txAmount,
         currency: sendForm.currency,
-        description: sendForm.description || `${sendForm.type} to ${recipientName} (${sendForm.accountNumber})`,
+        description: sendForm.description || `${sendForm.type} to ${recipient} (${sendForm.accountNumber})`,
         location: 'Web Portal',
         device: navigator.userAgent.includes('Mobile') ? 'Mobile Browser' : 'Desktop Browser',
       });
-      toast.success(`Transaction to ${recipientName} sent successfully!`);
+      const newBalance = balance - txAmount;
+      setBalance(newBalance);
+      localStorage.setItem(BALANCE_STORAGE_KEY, String(newBalance));
+      toast.success(
+        `✅ Transaction sent to ${recipient}! New balance: ${sendForm.currency} ${newBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        { duration: 5000 }
+      );
       setSendForm(defaultForm);
       setRecipientName(null);
       setShowSendForm(false);
@@ -186,9 +204,14 @@ const PortalTransactions = () => {
               className="overflow-hidden"
             >
               <form onSubmit={handleSend} className="px-5 pb-5 pt-1 border-t border-border space-y-4">
-                <p className="text-xs text-muted-foreground pt-2">
-                  Biometric or PIN verification is required before sending.
-                </p>
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-xs text-muted-foreground">
+                    Biometric or PIN verification is required before sending.
+                  </p>
+                  <p className="text-xs font-mono font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg">
+                    Balance: {sendForm.currency} {balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className="text-xs font-semibold text-foreground block mb-1.5">Recipient Account Number *</label>
@@ -197,10 +220,10 @@ const PortalTransactions = () => {
                         type="text"
                         value={sendForm.accountNumber}
                         onChange={e => {
-                          setSendForm(f => ({ ...f, accountNumber: e.target.value.toUpperCase() }));
+                          setSendForm(f => ({ ...f, accountNumber: e.target.value }));
                           setRecipientName(null);
                         }}
-                        placeholder="ACC-XXXXXXXX"
+                        placeholder="e.g. ACC-12345678 or 123456"
                         className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors font-mono"
                         required
                       />
@@ -271,7 +294,7 @@ const PortalTransactions = () => {
                 <div className="flex gap-3 pt-1">
                   <button
                     type="submit"
-                    disabled={sending || !recipientName}
+                    disabled={sending}
                     className="gradient-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity text-sm disabled:opacity-50 flex items-center gap-2"
                   >
                     {sending ? (
