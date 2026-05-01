@@ -18,12 +18,12 @@ interface Props {
 }
 
 const reasonLabels: Record<string, string> = {
-  new_device: 'Signing in from a device we don\'t recognize',
+  new_device: 'Signing in from a device we don't recognize',
   new_location: 'New location detected',
   unusual_hour: 'Unusual time for you',
   typing_pattern_deviation: 'Typing rhythm differs from your usual',
   pointer_pattern_deviation: 'Mouse movement looks different',
-  cold_start: 'We\'re still learning your patterns',
+  cold_start: 'We're still learning your patterns',
   accessibility_mode_active: 'Accessibility mode is on',
 };
 
@@ -50,7 +50,7 @@ const RiskStepUpModal = ({ open, risk, onPass, onCancel }: Props) => {
     const ok = await authenticate();
     setBusy(false);
     if (ok) { reset(); onPass('biometric'); }
-    else toast.error('Biometric verification didn\'t succeed — try a PIN or email code instead.');
+    else toast.error('Biometric verification didn't succeed — try a PIN or email code instead.');
   };
 
   const submitPin = async () => {
@@ -113,7 +113,7 @@ const RiskStepUpModal = ({ open, risk, onPass, onCancel }: Props) => {
 
         {/* Transparent reasons */}
         <div className="bg-secondary/40 border border-border rounded-lg p-3 mb-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">Why we\'re asking</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">Why we're asking</p>
           <ul className="space-y-1">
             {risk.reasonCodes.filter(r => reasonLabels[r]).slice(0, 3).map(r => (
               <li key={r} className="flex items-start gap-2 text-xs text-foreground">
@@ -190,7 +190,7 @@ const RiskStepUpModal = ({ open, risk, onPass, onCancel }: Props) => {
         </AnimatePresence>
 
         <p className="text-[10px] text-muted-foreground text-center mt-4">
-          Wasn\'t you noticing something unusual? You can <button onClick={close} className="text-primary underline">cancel and dispute later</button>.
+          Wasn't you noticing something unusual? You can <button onClick={close} className="text-primary underline">cancel and dispute later</button>.
         </p>
       </motion.div>
     </div>

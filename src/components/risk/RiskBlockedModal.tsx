@@ -47,7 +47,7 @@ const RiskBlockedModal = ({ open, riskEventId, reasonCodes, onClose }: Props) =>
         </div>
         <h2 className="text-lg font-bold text-foreground">Transaction paused for safety</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Several signals didn\'t match your usual pattern. We\'ve held this transaction so we can confirm it really is you.
+          Several signals didn't match your usual pattern. We've held this transaction so we can confirm it really is you.
         </p>
 
         {!showDispute ? (
@@ -76,7 +76,7 @@ const RiskBlockedModal = ({ open, riskEventId, reasonCodes, onClose }: Props) =>
               <select value={type} onChange={e => setType(e.target.value as typeof type)}
                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm">
                 <option value="false_positive">Nothing — this was me as usual</option>
-                <option value="device_change">I\'m using a new device</option>
+                <option value="device_change">I'm using a new device</option>
                 <option value="accessibility_change">My typing/movement changed (injury, AT, etc.)</option>
                 <option value="other">Something else</option>
               </select>
@@ -84,7 +84,7 @@ const RiskBlockedModal = ({ open, riskEventId, reasonCodes, onClose }: Props) =>
             <div>
               <label className="text-xs font-semibold text-foreground block mb-1">Tell us more (optional)</label>
               <textarea value={message} onChange={e => setMessage(e.target.value)} rows={3}
-                placeholder="Anything that\'ll help us understand..."
+                placeholder="Anything that'll help us understand..."
                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm resize-none" />
             </div>
             <div className="flex gap-2">

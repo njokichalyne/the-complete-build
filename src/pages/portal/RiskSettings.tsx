@@ -68,8 +68,8 @@ const RiskSettings = () => {
           <h2 className="font-semibold text-foreground">Your behavioral baseline</h2>
         </div>
         <p className="text-sm text-muted-foreground mb-3">
-          We learn typing rhythm, pointer movement, login times, and devices to spot when something doesn\'t feel like you.
-          {coldStart && ' We\'re still learning — until then, we won\'t block any transactions.'}
+          We learn typing rhythm, pointer movement, login times, and devices to spot when something doesn't feel like you.
+          {coldStart && ' We're still learning — until then, we won't block any transactions.'}
         </p>
         <div className="flex items-center gap-3">
           <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
