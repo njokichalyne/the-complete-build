@@ -17,6 +17,7 @@ import PortalTransactions from "./pages/portal/PortalTransactions";
 import ReportFraud from "./pages/portal/ReportFraud";
 import Chatbot from "./pages/portal/Chatbot";
 import Learn from "./pages/portal/Learn";
+import RiskSettings from "./pages/portal/RiskSettings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminTransactions from "./pages/admin/AdminTransactions";
 import AdminAlerts from "./pages/admin/AdminAlerts";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/portal/report" element={<ProtectedRoute><ReportFraud /></ProtectedRoute>} />
             <Route path="/portal/chatbot" element={<ProtectedRoute><Chatbot /></ProtectedRoute>} />
             <Route path="/portal/learn" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
+            <Route path="/portal/security" element={<ProtectedRoute><RiskSettings /></ProtectedRoute>} />
 
             {/* Admin (password protected) */}
             <Route path="/admin" element={<AdminGate><AdminDashboard /></AdminGate>} />

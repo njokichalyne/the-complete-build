@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Search, Brain, Loader2, SendHorizontal, ChevronDown, ChevronUp, UserSearch } from 'lucide-react';
@@ -7,7 +7,11 @@ import { fetchTransactions, analyzeTransaction, createTransaction, DbTransaction
 import { lookupByAccountNumber } from '@/lib/credentials';
 import ReactMarkdown from 'react-markdown';
 import BiometricModal from '@/components/BiometricModal';
+import RiskStepUpModal from '@/components/risk/RiskStepUpModal';
+import RiskBlockedModal from '@/components/risk/RiskBlockedModal';
+import UnusualPatternBanner from '@/components/risk/UnusualPatternBanner';
 import { useBiometricGate } from '@/hooks/useBiometricGate';
+import { useRiskEngine } from '@/hooks/useRiskEngine';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -59,6 +63,9 @@ const PortalTransactions = () => {
   const [analyzing, setAnalyzing] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<Record<string, string>>({});
   const { showGate, requireVerification, onVerified, onCancel } = useBiometricGate();
+  const risk = useRiskEngine();
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Hardcoded account balance (persisted in localStorage)
   const [balance, setBalance] = useState<number>(() => {
@@ -72,6 +79,10 @@ const PortalTransactions = () => {
   const [sending, setSending] = useState(false);
   const [recipientName, setRecipientName] = useState<string | null>(null);
   const [lookingUp, setLookingUp] = useState(false);
+
+  useEffect(() => {
+    if (formRef.current) risk.attach(formRef.current);
+  }, [showSendForm, risk]);
 
   const filtered = transactions?.filter(t =>
     t.user_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -159,12 +170,18 @@ const PortalTransactions = () => {
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    requireVerification(doSendTransaction);
+    // Two-stage gate: first behavioral risk, then if approved → biometric.
+    risk.evaluate(() => requireVerification(doSendTransaction), 'transaction');
   };
 
   return (
     <PortalLayout>
       <BiometricModal open={showGate} onVerified={onVerified} onCancel={onCancel} />
+      <RiskStepUpModal open={risk.stepUpOpen} risk={risk.risk}
+        onPass={async (m) => { await risk.onStepUpPass(m); requireVerification(doSendTransaction); }}
+        onCancel={risk.onStepUpCancel} />
+      <RiskBlockedModal open={risk.blockedOpen} riskEventId={risk.riskEventId}
+        reasonCodes={risk.risk?.reasonCodes ?? []} onClose={risk.onBlockedClose} />
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-foreground mb-1">Transaction Monitor</h1>
         <p className="text-sm text-muted-foreground">View recent transactions and get AI-powered risk analysis.</p>
@@ -203,7 +220,9 @@ const PortalTransactions = () => {
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <form onSubmit={handleSend} className="px-5 pb-5 pt-1 border-t border-border space-y-4">
+              <form ref={formRef} onSubmit={handleSend} className="px-5 pb-5 pt-1 border-t border-border space-y-4">
+                <UnusualPatternBanner show={!bannerDismissed && !!risk.risk && risk.risk.score >= 25 && risk.risk.decision === 'approved'}
+                  onDismiss={() => setBannerDismissed(true)} />
                 <div className="flex items-center justify-between pt-2">
                   <p className="text-xs text-muted-foreground">
                     Biometric or PIN verification is required before sending.
