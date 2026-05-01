@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      behavioral_baselines: {
+        Row: {
+          accessibility_mode: boolean
+          avg_pointer_velocity: number | null
+          avg_typing_interval_ms: number | null
+          common_hours: number[] | null
+          created_at: string
+          known_devices: string[] | null
+          known_locations: string[] | null
+          last_updated: string
+          samples_count: number
+          std_pointer_velocity: number | null
+          std_typing_interval_ms: number | null
+          user_id: string
+        }
+        Insert: {
+          accessibility_mode?: boolean
+          avg_pointer_velocity?: number | null
+          avg_typing_interval_ms?: number | null
+          common_hours?: number[] | null
+          created_at?: string
+          known_devices?: string[] | null
+          known_locations?: string[] | null
+          last_updated?: string
+          samples_count?: number
+          std_pointer_velocity?: number | null
+          std_typing_interval_ms?: number | null
+          user_id: string
+        }
+        Update: {
+          accessibility_mode?: boolean
+          avg_pointer_velocity?: number | null
+          avg_typing_interval_ms?: number | null
+          common_hours?: number[] | null
+          created_at?: string
+          known_devices?: string[] | null
+          known_locations?: string[] | null
+          last_updated?: string
+          samples_count?: number
+          std_pointer_velocity?: number | null
+          std_typing_interval_ms?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      behavioral_signals: {
+        Row: {
+          avg_pointer_velocity: number | null
+          avg_typing_interval_ms: number | null
+          context: string | null
+          created_at: string
+          device_fp: string | null
+          hour_of_day: number | null
+          id: string
+          location_hint: string | null
+          user_id: string
+        }
+        Insert: {
+          avg_pointer_velocity?: number | null
+          avg_typing_interval_ms?: number | null
+          context?: string | null
+          created_at?: string
+          device_fp?: string | null
+          hour_of_day?: number | null
+          id?: string
+          location_hint?: string | null
+          user_id: string
+        }
+        Update: {
+          avg_pointer_velocity?: number | null
+          avg_typing_interval_ms?: number | null
+          context?: string | null
+          created_at?: string
+          device_fp?: string | null
+          hour_of_day?: number | null
+          id?: string
+          location_hint?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       failed_tx_attempts: {
         Row: {
           attempt_count: number
@@ -142,6 +223,116 @@ export type Database = {
         }
         Relationships: []
       }
+      risk_disputes: {
+        Row: {
+          created_at: string
+          dispute_type: string
+          id: string
+          message: string | null
+          resolved_at: string | null
+          risk_event_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dispute_type: string
+          id?: string
+          message?: string | null
+          resolved_at?: string | null
+          risk_event_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dispute_type?: string
+          id?: string
+          message?: string | null
+          resolved_at?: string | null
+          risk_event_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risk_disputes_risk_event_id_fkey"
+            columns: ["risk_event_id"]
+            isOneToOne: false
+            referencedRelation: "risk_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      risk_events: {
+        Row: {
+          cold_start: boolean
+          created_at: string
+          decision: string
+          id: string
+          reason_codes: string[] | null
+          risk_score: number
+          step_up_method: string | null
+          step_up_passed: boolean | null
+          transaction_ref: string | null
+          user_id: string
+        }
+        Insert: {
+          cold_start?: boolean
+          created_at?: string
+          decision: string
+          id?: string
+          reason_codes?: string[] | null
+          risk_score: number
+          step_up_method?: string | null
+          step_up_passed?: boolean | null
+          transaction_ref?: string | null
+          user_id: string
+        }
+        Update: {
+          cold_start?: boolean
+          created_at?: string
+          decision?: string
+          id?: string
+          reason_codes?: string[] | null
+          risk_score?: number
+          step_up_method?: string | null
+          step_up_passed?: boolean | null
+          transaction_ref?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      step_up_otps: {
+        Row: {
+          attempts: number
+          consumed: boolean
+          created_at: string
+          expires_at: string
+          id: string
+          otp_hash: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          consumed?: boolean
+          created_at?: string
+          expires_at: string
+          id?: string
+          otp_hash: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          consumed?: boolean
+          created_at?: string
+          expires_at?: string
+          id?: string
+          otp_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -214,6 +405,36 @@ export type Database = {
           updated_at?: string
           user_id?: string
           webauthn_credential_id?: string | null
+        }
+        Relationships: []
+      }
+      user_risk_prefs: {
+        Row: {
+          accessibility_mode: boolean
+          behavioral_monitoring_enabled: boolean
+          created_at: string
+          preferred_step_up: string
+          share_signals_for_global_model: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accessibility_mode?: boolean
+          behavioral_monitoring_enabled?: boolean
+          created_at?: string
+          preferred_step_up?: string
+          share_signals_for_global_model?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accessibility_mode?: boolean
+          behavioral_monitoring_enabled?: boolean
+          created_at?: string
+          preferred_step_up?: string
+          share_signals_for_global_model?: boolean
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
